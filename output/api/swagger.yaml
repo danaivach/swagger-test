@@ -1,0 +1,356 @@
+openapi: 3.0.0
+info:
+  title: URx robot controller API docs
+  description: API for the URx robot controller
+  contact:
+    email: danai.vachtsevanou@unisg.ch
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/danaivach/robot-controller/1.0.0
+  description: SwaggerHub API Auto Mocking
+tags:
+- name: operator
+  description: The operator of the robot controller.
+- name: viewpoint
+  description: The set viewpoint of the robot.
+- name: grabspot
+  description: The position at which the robot is set to grab.
+- name: releasespot
+  description: The position at which the robot is set to release.
+paths:
+  /operator:
+    get:
+      tags:
+      - operator
+      summary: Reads the operator.
+      description: Reads the name and email of the operator of the robot controller.
+      responses:
+        "200":
+          description: Operator read successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+        "400":
+          description: Bad input parameter.
+    post:
+      tags:
+      - operator
+      summary: Sets an operator.
+      description: "Sets a new operator with a name and email address. Upon successful\
+        \ registration, the response's header contains a \"Location\" tag with an\
+        \ API key at the end. The API key can be used to gain access to the API of\
+        \ the robot controller."
+      requestBody:
+        description: Operator to be registered.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Operator'
+        required: true
+      responses:
+        "200":
+          description: Operator set successfully.
+          headers:
+            Location:
+              description: "The location of the current operator, e.g. virtserver.swaggerhub.com/danaivach/robot/0.0.0/operator/6dc1e80c14edf749e2ceb86d98ea1ca1."
+              style: simple
+              explode: false
+              schema:
+                type: string
+              example: virtserver.swaggerhub.com/danaivach/robot/0.0.0/operator/6dc1e80c14edf749e2ceb86d98ea1ca1
+        "400":
+          description: Bad input parameter.
+        "403":
+          description: An operator is already set.
+  /operator/{token}:
+    delete:
+      tags:
+      - operator
+      summary: Removes the operator.
+      description: Removes the operator specified by the token.
+      parameters:
+      - name: token
+        in: path
+        description: The operator token.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: 6dc1e80c14edf749e2ceb86d98ea1ca1
+      - name: X-API-KEY
+        in: header
+        description: The operator token.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: 6dc1e80c14edf749e2ceb86d98ea1ca1
+      responses:
+        "200":
+          description: Operator successfully removed.
+        "400":
+          description: Invalid token; no operator is set with the specified token.
+        "401":
+          description: Unauthorized.
+  /viewpoint:
+    put:
+      tags:
+      - viewpoint
+      summary: Sets the viewpoint.
+      description: Sets the target viewpoint of the robot.
+      parameters:
+      - name: X-API-KEY
+        in: header
+        description: The operator token.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: 6dc1e80c14edf749e2ceb86d98ea1ca1
+      requestBody:
+        description: The target viewpoint.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Viewpoint'
+        required: true
+      responses:
+        "200":
+          description: The position has been accepted.
+        "400":
+          description: Invalid input parameter.
+        "401":
+          description: Unauthorized.
+      callbacks:
+        done:
+          '{$request.body#/callback}':
+            post:
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Done'
+                required: true
+              responses:
+                "200":
+                  description: Acknowledged.
+                "400":
+                  description: Invalid input parameter.
+  /grabspot:
+    put:
+      tags:
+      - grabspot
+      summary: Sets the graspbot.
+      description: Sets the target graspbot of the robot.
+      parameters:
+      - name: X-API-KEY
+        in: header
+        description: The operator token.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: 6dc1e80c14edf749e2ceb86d98ea1ca1
+      requestBody:
+        description: The target position.
+        content:
+          application/json+eucledian:
+            schema:
+              $ref: '#/components/schemas/grabspot_body'
+          application/json+neighborhood:
+            schema:
+              $ref: '#/components/schemas/grabspot_body_1'
+        required: true
+      responses:
+        "200":
+          description: The neighbor/coordinates have been accepted.
+        "400":
+          description: Invalid input parameter.
+        "401":
+          description: Unauthorized.
+      callbacks:
+        done:
+          '{$request.body#/callback}':
+            post:
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Done'
+                required: true
+              responses:
+                "200":
+                  description: Acknowledged.
+                "400":
+                  description: Invalid input parameter.
+  /releasespot:
+    put:
+      tags:
+      - releasespot
+      summary: Sets the release-spot.
+      description: Sets the target release-spot of the robot.
+      parameters:
+      - name: X-API-KEY
+        in: header
+        description: The operator token.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: 6dc1e80c14edf749e2ceb86d98ea1ca1
+      requestBody:
+        description: The target position.
+        content:
+          application/json+eucledian:
+            schema:
+              $ref: '#/components/schemas/releasespot_body'
+          application/json+neighborhood:
+            schema:
+              $ref: '#/components/schemas/releasespot_body_1'
+        required: true
+      responses:
+        "200":
+          description: The neighbor/coordinates have been accepted.
+        "400":
+          description: Invalid input parameter.
+        "401":
+          description: Unauthorized.
+      callbacks:
+        done:
+          '{$request.body#/callback}':
+            post:
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Done'
+                required: true
+              responses:
+                "200":
+                  description: Acknowledged.
+                "400":
+                  description: Invalid input parameter.
+components:
+  schemas:
+    Operator:
+      required:
+      - email
+      - name
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+      example:
+        name: Danai Vachtsevanou
+        email: danai.vachtsevanou@unisg.ch
+    Done:
+      type: object
+      properties:
+        message:
+          required:
+          - message
+          type: string
+          example: Completed
+          enum:
+          - Completed
+          - In progress
+          - Aborted
+    Viewpoint:
+      required:
+      - callback
+      - position
+      type: object
+      properties:
+        store:
+          type: integer
+          description: The store towards which the viewpoint is positioned and oriented.
+          example: 0
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+        callback:
+          type: string
+          description: The callback location passed to the robot controller. The robot
+            controller will
+          example: http://interactions.ics.unisg.ch/#me
+    Coordinates:
+      required:
+      - x
+      - "y"
+      - z
+      type: object
+      properties:
+        x:
+          type: number
+          example: 0
+        "y":
+          type: number
+          example: 0
+        z:
+          type: number
+          example: 0
+    Neighbor:
+      type: string
+      example: engraver1
+      enum:
+      - "0"
+      - "1"
+      - engraver1
+      - engraver2
+    grabspot_body:
+      required:
+      - callback
+      - position
+      type: object
+      properties:
+        position:
+          $ref: '#/components/schemas/Coordinates'
+        callback:
+          type: string
+          example: http://interactions.ics.unisg.ch/#me
+    grabspot_body_1:
+      required:
+      - callback
+      - position
+      type: object
+      properties:
+        position:
+          $ref: '#/components/schemas/Neighbor'
+        callback:
+          type: string
+          example: http://interactions.ics.unisg.ch/#me
+    releasespot_body:
+      required:
+      - callback
+      - position
+      type: object
+      properties:
+        position:
+          $ref: '#/components/schemas/Coordinates'
+        callback:
+          type: string
+          example: http://interactions.ics.unisg.ch/#me
+    releasespot_body_1:
+      required:
+      - callback
+      - position
+      type: object
+      properties:
+        position:
+          $ref: '#/components/schemas/Neighbor'
+        callback:
+          type: string
+          example: http://interactions.ics.unisg.ch/#me
